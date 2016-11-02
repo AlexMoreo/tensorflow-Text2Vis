@@ -123,12 +123,7 @@ def evaluation(test_batches, visual_ids, visual_vectors,
 
         nbrs = NearestNeighbors(n_neighbors=find_nearest, n_jobs=-1).fit(visual_vectors)
     else:
-        #nbrs = NearestNeighbors(n_neighbors=find_nearest, n_jobs=-1, algorithm='brute', metric='cosine').fit(visual_vectors)
-        print('Normalizing visual features...')
-        sklearn.preprocessing.normalize(visual_vectors, norm='l2', axis=1, copy=False)
-        proc_predictions = sklearn.preprocessing.normalize(predictions, norm='l2', axis=1, copy=True)
-
-        nbrs = NearestNeighbors(n_neighbors=find_nearest, n_jobs=8).fit(visual_vectors)
+        nbrs = NearestNeighbors(n_neighbors=find_nearest, n_jobs=8, algorithm='brute', metric='cosine').fit(visual_vectors)
 
     print('Getting nearest neighbors...')
     _, indices = nbrs.kneighbors(proc_predictions)
@@ -156,76 +151,3 @@ def evaluation(test_batches, visual_ids, visual_vectors,
       vis.write(u'Test completed: %s DCGrouge=%.4f\n' % (test_loss, dcg_rouge_ave))
       print('Test completed: %s DCGrouge=%.4f' % (test_loss, dcg_rouge_ave))
 
-# def evaluationCosine(test_batches, visual_ids, visual_vectors,
-#                      predictions, test_img_ids, test_cap_id,
-#                      predictions_file,
-#                      test_loss, find_nearest=25, save_predictions=True):
-#
-#     print('Getting nearest neighbors...')
-#     nbrs = NearestNeighbors(n_neighbors=find_nearest, n_jobs=-1, algorithm='brute', metric='cosine').fit(visual_vectors)
-#     _, indices = nbrs.kneighbors(predictions)
-#
-#     print('Getting DCG...')
-#     dcg_rouge_ave = 0
-#     tests_processed = 0
-#     with open(predictions_file, 'w', encoding="utf-8", buffering=100000000) as vis:
-#         for i in xrange(len(predictions)):
-#             pred_str = (' '.join(('%.3f' % x) for x in predictions[i])).replace(" 0.000"," 0") if save_predictions else ''
-#             img_id = test_img_ids[i]
-#             cap_id = test_cap_id[i]
-#             cap_txt = test_batches.get_caption_txt(img_id, cap_id)
-#             nneigbours_ids = visual_ids[indices[i]]
-#             nneigbours_ids_str = ' '.join([("%d" % x) for x in nneigbours_ids]) if save_predictions else ''
-#             dcg_rouge = compute_dcg(batcher=test_batches, input_sentente=cap_txt, ranks=nneigbours_ids, k=find_nearest)
-#             dcg_rouge_ave += dcg_rouge
-#             if save_predictions:
-#                 vis.write(
-#                     "%s\t%d\t%s\t%s\t%s\t%0.4f\n" % (img_id, cap_id, cap_txt, pred_str, nneigbours_ids_str, dcg_rouge))
-#             tests_processed += 1
-#             if tests_processed % 1000 == 0:
-#                 print('Processed %d predictions. DCGAve=%f' % (tests_processed, dcg_rouge_ave/tests_processed))
-#         dcg_rouge_ave /= tests_processed
-#
-#         vis.write(u'Test completed: %s DCGrouge=%.4f\n' % (test_loss, dcg_rouge_ave))
-#         print('Test completed: %s DCGrouge=%.4f' % (test_loss, dcg_rouge_ave))
-
-# def evaluationCosine(test_batches, visual_ids, visual_vectors,
-#                predictions, test_img_ids, test_cap_id,
-#                predictions_file,
-#                test_loss, find_nearest = 25, save_predictions=True):
-#
-#     print('Normalizing visual features...')
-#     nbrs = NearestNeighbors(n_neighbors=find_nearest, n_jobs=-1, algorithm='brute', metric='cosine').fit(visual_vectors)
-#
-#     split_size = 5000
-#     n_splits   = len(predictions) / split_size
-#     if len(predictions) % split_size > 0: n_splits+=1
-#
-#     print('Getting DCG_rouge...')
-#     dcg_rouge_ave = 0
-#     tests_processed = 0
-#     with open(predictions_file, 'w', encoding="utf-8", buffering=100000000) as vis:
-#         for split in xrange(n_splits):
-#             offset = split * split_size
-#             pred_batch = predictions[offset:offset+split_size]
-#             print('Getting nearest neighbors...')
-#             _, indices = nbrs.kneighbors(pred_batch)
-#             for i in xrange(len(pred_batch)):
-#                 pred_str = (' '.join(('%.3f' % x) for x in pred_batch[i])).replace(" 0.000"," 0") if save_predictions else ''
-#                 img_id = test_img_ids[offset+i]
-#                 cap_id = test_cap_id[offset+i]
-#                 cap_txt = test_batches.get_caption_txt(img_id, cap_id)
-#                 nneigbours_ids = visual_ids[indices[i]]
-#                 nneigbours_ids_str = ' '.join([("%d" % x) for x in nneigbours_ids]) if save_predictions else ''
-#                 dcg_rouge = compute_dcg(batcher=test_batches, input_sentente=cap_txt, ranks=nneigbours_ids,
-#                                         k=find_nearest)
-#                 dcg_rouge_ave += dcg_rouge
-#                 if save_predictions:
-#                     vis.write("%s\t%d\t%s\t%s\t%s\t%0.4f\n" % (
-#                     img_id, cap_id, cap_txt, pred_str, nneigbours_ids_str, dcg_rouge))
-#                 tests_processed += 1
-#             print('Processed %d predictions' % (tests_processed))
-#         dcg_rouge_ave /= tests_processed
-#
-#         vis.write(u'Test completed: %s DCGrouge=%.4f\n' % (test_loss, dcg_rouge_ave))
-#         print('Test completed: %s DCGrouge=%.4f' % (test_loss, dcg_rouge_ave))
